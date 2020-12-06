@@ -1,0 +1,219 @@
+1. 用 add first 或 add last 这套新的 API 改写 Deque 的代码
+
+   ```java
+   视频讲解Api:
+   Deque<String> deque=new LinkedList<String>();
+   deque.push("a);
+   deque.push("b");
+   deque.push("c");
+   System.out.println(deque);
+   String str=deque.peek();
+   System.out.println(str);
+   System.out.println(deque);           
+   while(deque.size>0){
+     System.out.println(deque.pop());
+   }
+   System.out.println(deque);           
+          
+   Deque<String> deque1=new LinkedList<String>();
+           deque1.add("a");
+           deque1.add("b");
+           deque1.add("c");
+           System.out.println(deque1);
+           String test=deque1.element();
+           System.out.println(test);
+           System.out.println(deque1);
+           while (deque1.size()>0){
+               System.out.println(deque1.remove());
+           }
+           System.out.println(deque); 
+   ```
+
+   2.分析 Queue 和 Priority Queue  的源码
+
+   Queue是一个接口
+
+```
+//抛出异常api
+boolean add(E e)： 如果可以在不违反容量限制的情况下立即执行此操作，则将指定的元素插入此队列，成功时返回true，如果当前没有可用空间则抛出IllegalStateException。
+
+E remove()：检索并删除此队列的头部元素。 此方法与poll的不同之处仅在于，如果此队列为空，则抛出异常 NoSuchElementException。
+
+E element()：检索但不删除此队列的头部。 此方法与peek的不同之处仅在于，如果此队列为空，则抛出异常 NoSuchElementException。
+
+//不抛异常api
+boolean offer(E e)： 如果可以在不违反容量限制的情况下立即执行此操作，则将指定的元素插入此队列，成功时返回true，如果当前没有可用空间则返回 false。
+
+E poll()： 检索并删除此队列的头部，如果此队列为空，则返回null。
+
+E peek()：检索但不移除此队列的头部，如果此队列为空，则返回null。
+```
+
+Priority Queue(不知从何看起，及如何总结源码！！！)
+
+```
+
+```
+
+​    3.[删除排序数组中的重复项](https://leetcode-cn.com/problems/remove-duplicates-from-sorted-array/)（Facebook、字节跳动、微软在半年内面试中考过）
+
+```
+class Solution {
+    public int removeDuplicates(int[] nums) {
+       //原地修改 意味着不能开辟新数组
+       //1.暴力解法？？ 循环放在set里？
+      if(nums == null || nums.length == 0) return 0;
+
+       int p=0;
+       int q=1;
+        while(q < nums.length){
+        if(nums[p] != nums[q]){
+            nums[p + 1] = nums[q];
+            p++;
+        }
+        q++;
+     }   
+     return p+1;
+
+    }
+}
+```
+
+​    4.[旋转数组](https://leetcode-cn.com/problems/rotate-array/)（微软、亚马逊、PayPal 在半年内面试中考过）
+
+```
+class Solution {
+    public void rotate(int[] nums, int k) {
+     //第一种 开辟两个数组 然后合并两个数组到新数组中 
+     //第二种 暴力 将 k个数插入 数组种
+     //类似滑动窗口 用双端队列？
+      精选题解没有能看懂思路！！！
+
+    }
+}
+```
+
+​    5.合并两个有序链表](https://leetcode-cn.com/problems/merge-two-sorted-lists/)（亚马逊、字节跳动在半年内面试常考）
+
+```
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+     //循环链表 判断当前节点是否小于等于要插入的节点 是直接插入 当该节点前 ，否则则判断是否大于该节点的next指针值
+      
+        if(l1 == null) {
+            return l2;
+        }
+        if(l2 == null) {
+            return l1;
+        }
+
+        if(l1.val < l2.val) {
+            l1.next = mergeTwoLists(l1.next, l2);
+            return l1;
+        } else {
+            l2.next = mergeTwoLists(l1, l2.next);
+            return l2;
+        }
+    }    
+}
+```
+
+​    6.[合并两个有序数组](https://leetcode-cn.com/problems/merge-sorted-array/)（Facebook 在半年内面试常考）
+
+```
+class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+      //1.暴力破解  循环 nums1 并循环nums2 主意比较后插入
+      //2.循环
+      //3.开辟两个数组然后合并？
+        int len1 = m - 1;
+        int len2 = n - 1;
+        int len = m + n - 1;
+        //如果两个数组都大于0才执行循环 ，有一个不大于等于0,则表示已经合并完毕因为是有序剩下的可以直接插入
+        while(len1 >= 0 && len2 >= 0) {
+            // 注意--符号在后面，表示先进行计算再减1，这种缩写缩短了代码
+            // 新数组的索引值 从后往前计算 如果 m数组值大于n数组值 则设置为m 否则设置为n 然后index下移判断下一个是否还比另一个数组大
+            //
+            nums1[len--] = nums1[len1] > nums2[len2] ? nums1[len1--] : nums2[len2--];
+        }
+        // 表示将nums2数组从下标0位置开始，拷贝到nums1数组中，从下标0位置开始，长度为len2+1
+        System.arraycopy(nums2, 0, nums1, 0, len2 + 1);
+    }
+}
+```
+
+​    7.[两数之和](https://leetcode-cn.com/problems/two-sum/)（亚马逊、字节跳动、谷歌、Facebook、苹果、微软在半年内面试中高频常考
+
+```
+class Solution {
+    public int[] twoSum(int[] nums, int target) {
+      //1.暴力破解
+      //2.hash 法 一个hash 存储 target-x 及索引 
+      Map<Integer, Integer> map = new HashMap<>();
+        for(int i = 0; i< nums.length; i++) {
+            if(map.containsKey(target - nums[i])) {
+                return new int[] {map.get(target-nums[i]),i};
+            }
+            map.put(nums[i], i);
+        }
+        throw new IllegalArgumentException("No two sum solution");
+    }
+}
+```
+
+​    8.[移动零](https://leetcode-cn.com/problems/move-zeroes/)（Facebook、亚马逊、苹果在半年内面试中考过）
+
+```
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int i = 0;
+        for (int j = 0; j < nums.length; j++ ){
+            if (nums[j] != 0){
+                nums[i] = nums[j];
+                i ++;
+            }
+        }
+        for (int j = i; j < nums.length; j++ ){
+            nums[j] = 0;
+        }
+    }
+}
+```
+
+​    9.[加一](https://leetcode-cn.com/problems/plus-one/)（谷歌、字节跳动、Facebook 在半年内面试中考过）
+
+```
+class Solution {
+    public int[] plusOne(int[] digits) {
+        int update = 0;
+        for (int i = digits.length - 1; i >= 0; i--) {
+            if (digits[i] + 1 >= 10) {
+                update = 1;
+                digits[i] = 0;
+            } else {
+                update = 0;
+                digits[i] += 1;
+                break;
+            }
+        }
+
+        if (digits[0] == 0 && update == 1) {
+            int[] result = new int[digits.length + 1];
+            result[0] = 1;
+            return result;
+        }
+        return digits;
+    }
+}
+```
+
