@@ -1,0 +1,356 @@
+## 本周作业
+
+### 简单：
+
+- 写一个关于 HashMap 的小总结。
+  
+  ```java 
+      JDK1.8之后HashMap 在存储时采用链表加红黑树都的结构，
+      所以获取一个值得时候需要判断是否有红黑树，有红黑树需要在树中查找该节点，并比较value值是否相等（因为是hash   冲突的状态）    
+  
+     put的时候需要先判断是否容量还够，不够需要扩容，还要判断是否存在hash冲突，如果冲突了是否大于6,如果大于则需要新建红黑树，如果已经有树了则直接查找树并新增节点即可     
+  
+      public V get(Object key) {
+          Node<K,V> e;
+          return (e = getNode(hash(key), key)) == null ? null : e.value;
+      }
+  
+      /**
+       * Implements Map.get and related methods
+       *
+       * @param hash hash for key
+       * @param key the key
+       * @return the node, or null if none
+       */
+      final Node<K,V> getNode(int hash, Object key) {
+          Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+          if ((tab = table) != null && (n = tab.length) > 0 &&
+              (first = tab[(n - 1) & hash]) != null) {
+              if (first.hash == hash && // always check first node
+                  ((k = first.key) == key || (key != null && key.equals(k))))
+                  return first;
+              if ((e = first.next) != null) {
+                  if (first instanceof TreeNode)
+                      return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+                  do {
+                      if (e.hash == hash &&
+                          ((k = e.key) == key || (key != null && key.equals(k))))
+                          return e;
+                  } while ((e = e.next) != null);
+              }
+          }
+          return null;
+      }
+  
+         /**
+           * Calls find for root node.
+           */
+          final TreeNode<K,V> getTreeNode(int h, Object k) {
+              return ((parent != null) ? root() : this).find(h, k, null);
+          }   
+  
+         /**
+           * Finds the node starting at root p with the given hash and key.
+           * The kc argument caches comparableClassFor(key) upon first use
+           * comparing keys.
+           */
+          final TreeNode<K,V> find(int h, Object k, Class<?> kc) {
+              TreeNode<K,V> p = this;
+              do {
+                  int ph, dir; K pk;
+                  TreeNode<K,V> pl = p.left, pr = p.right, q;
+                  if ((ph = p.hash) > h)
+                      p = pl;
+                  else if (ph < h)
+                      p = pr;
+                  else if ((pk = p.key) == k || (k != null && k.equals(pk)))
+                      return p;
+                  else if (pl == null)
+                      p = pr;
+                  else if (pr == null)
+                      p = pl;
+                  else if ((kc != null ||
+                            (kc = comparableClassFor(k)) != null) &&
+                           (dir = compareComparables(kc, k, pk)) != 0)
+                      p = (dir < 0) ? pl : pr;
+                  else if ((q = pr.find(h, k, kc)) != null)
+                      return q;
+                  else
+                      p = pl;
+              } while (p != null);
+              return null;
+          }
+  
+  
+      /**
+       * Associates the specified value with the specified key in this map.
+       * If the map previously contained a mapping for the key, the old
+       * value is replaced.
+       *
+       * @param key key with which the specified value is to be associated
+       * @param value value to be associated with the specified key
+       * @return the previous value associated with <tt>key</tt>, or
+       *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+       *         (A <tt>null</tt> return can also indicate that the map
+       *         previously associated <tt>null</tt> with <tt>key</tt>.)
+       */
+      public V put(K key, V value) {
+          return putVal(hash(key), key, value, false, true);
+      }
+  
+      /**
+       * Implements Map.put and related methods
+       *
+       * @param hash hash for key
+       * @param key the key
+       * @param value the value to put
+       * @param onlyIfAbsent if true, don't change existing value
+       * @param evict if false, the table is in creation mode.
+       * @return previous value, or null if none
+       */
+      final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                     boolean evict) {
+          Node<K,V>[] tab; Node<K,V> p; int n, i;
+          if ((tab = table) == null || (n = tab.length) == 0)
+              n = (tab = resize()).length;
+          if ((p = tab[i = (n - 1) & hash]) == null)
+              tab[i] = newNode(hash, key, value, null);
+          else {
+              Node<K,V> e; K k;
+              if (p.hash == hash &&
+                  ((k = p.key) == key || (key != null && key.equals(k))))
+                  e = p;
+              else if (p instanceof TreeNode)
+                  e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+              else {
+                  for (int binCount = 0; ; ++binCount) {
+                      if ((e = p.next) == null) {
+                          p.next = newNode(hash, key, value, null);
+                          if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                              treeifyBin(tab, hash);
+                          break;
+                      }
+                      if (e.hash == hash &&
+                          ((k = e.key) == key || (key != null && key.equals(k))))
+                          break;
+                      p = e;
+                  }
+              }
+              if (e != null) { // existing mapping for key
+                  V oldValue = e.value;
+                  if (!onlyIfAbsent || oldValue == null)
+                      e.value = value;
+                  afterNodeAccess(e);
+                  return oldValue;
+              }
+          }
+          ++modCount;
+          if (++size > threshold)
+              resize();
+          afterNodeInsertion(evict);
+          return null;
+      }
+  ```
+  
+- [有效的字母异位词](https://leetcode-cn.com/problems/valid-anagram/description/)（亚马逊、Facebook、谷歌在半年内面试中考过）
+
+  ```java
+   public boolean isAnagram(String s, String t) {
+          //1.统一转换成小写 字符为key count 为value 当map不包含则直接返回false 当包含则需要把         t1 map value 减一 直到为0证明 都匹配完了 
+          //hashmap<integer,integer> s1=new hashmap<>();
+         // hashmap<integer,integer> t1=new hashmap<>();
+  
+         char[] s1=s.toCharArray();
+         char[] t2=t.toCharArray();
+         if(s1.length!=t2.length){
+             return false;
+         }
+         Arrays.sort(s1); 
+         Arrays.sort(t2);
+         for(int i=0;i<s1.length;i++){
+             if(s1[i]!=t2[i]){
+                 return false;
+             }
+         }
+         return true;
+      }
+  ```
+
+- [两数之和](https://leetcode-cn.com/problems/two-sum/description/)（近半年内，亚马逊考查此题达到 216 次、字节跳动 147 次、谷歌 104 次，Facebook、苹果、微软、腾讯也在近半年内面试常考）
+
+  ```java
+  public int[] twoSum(int[] nums, int target) {
+        //1.暴力破解
+        //2.hash 法 一个hash 存储 target-x 及索引 
+        Map<Integer, Integer> map = new HashMap<>();
+          for(int i = 0; i< nums.length; i++) {
+              if(map.containsKey(target - nums[i])) {
+                  return new int[] {map.get(target-nums[i]),i};
+              }
+              map.put(nums[i], i);
+          }
+          throw new IllegalArgumentException("No two sum solution");
+      }
+  ```
+
+  
+
+- [N 叉树的前序遍历](https://leetcode-cn.com/problems/n-ary-tree-preorder-traversal/description/)（亚马逊在半年内面试中考过）
+
+  ```
+  
+  ```
+
+  
+
+- HeapSort ：自学 https://www.geeksforgeeks.org/heap-sort/
+
+  ```
+  没有vpn找了篇国内的学习 https://blog.csdn.net/u013309870/article/details/68578011
+  ```
+
+  
+
+- [字母异位词分组](https://leetcode-cn.com/problems/group-anagrams/)（亚马逊在半年内面试中常考）
+
+  ```java
+  //跟普通的异位词不同的就是多了一层 也可以采用之前先排序在匹配,主要还是异位词要求长度相同，字段相同只是位置不同
+  public List<List<String>> groupAnagrams(String[] strs) {
+      //边界条件判断
+      if (strs == null || strs.length == 0)
+          return new ArrayList<>();
+      Map<String, List<String>> map = new HashMap<>();
+      for (String s : strs) {
+          char[] ca = new char[26];
+          //统计字符串中每个字符串出现的次数
+          for (char c : s.toCharArray())
+              //ascll 码10进制计算
+              ca[c - 'a']++;
+          //统计每个字符出现次数的数组转化为字符串
+          String keyStr = String.valueOf(ca);
+          if (!map.containsKey(keyStr))
+              map.put(keyStr, new ArrayList<>());
+          map.get(keyStr).add(s);
+      }
+      return new ArrayList<>(map.values());
+      }
+  ```
+
+- [二叉树的中序遍历](https://leetcode-cn.com/problems/binary-tree-inorder-traversal/)（亚马逊、字节跳动、微软在半年内面试中考过）
+
+  ```
+  前序遍历：打印 - 左 - 右
+  中序遍历：左 - 打印 - 右
+  后序遍历：左 - 右 - 打印
+  public List<Integer> inorderTraversal(TreeNode root) {
+  		List<Integer> res = new ArrayList<Integer>();
+  		Stack<TreeNode> stack = new Stack<TreeNode>();
+  		while(stack.size()>0 || root!=null) {
+  			//不断往左子树方向走，每走一次就将当前节点保存到栈中
+  			//这是模拟递归的调用
+  			if(root!=null) {
+  				stack.add(root);
+  				root = root.left;
+  			//当前节点为空，说明左边走到头了，从栈中弹出节点并保存
+  			//然后转向右边节点，继续上面整个过程
+  			} else {
+  				TreeNode tmp = stack.pop();
+  				res.add(tmp.val);
+  				root = tmp.right;
+  			}
+  		}
+  		return res;
+  	}
+  ```
+
+  
+
+- [二叉树的前序遍历](https://leetcode-cn.com/problems/binary-tree-preorder-traversal/)（字节跳动、谷歌、腾讯在半年内面试中考过）
+
+  ```java
+  前序遍历：打印 - 左 - 右
+  中序遍历：左 - 打印 - 右
+  后序遍历：左 - 右 - 打印
+  public List<Integer> preorderTraversal(TreeNode root) {
+          List<Integer> list=new ArrayList<>();
+          Stack<TreeNode> stack=new Stack<>();
+          while(root!=null||(!stack.empty())){
+              if(root!=null){
+                  list.add(root.val);//步骤一，取根节点的值
+                  stack.push(root);
+                  root=root.left;//步骤二，遍历左子树
+              }
+              else{
+                  TreeNode tem=stack.pop();
+                  root=tem.right;//步骤三，遍历右子树
+              }
+          }
+          return list;
+      }
+  ```
+
+  
+
+- [N 叉树的层序遍历](https://leetcode-cn.com/problems/n-ary-tree-level-order-traversal/)（亚马逊在半年内面试中考过）
+
+  ```
+  
+  ```
+
+  
+
+- [丑数](https://leetcode-cn.com/problems/chou-shu-lcof/)（字节跳动在半年内面试中考过）
+
+  ```java
+      public int nthUglyNumber(int n) {
+        int a = 0, b = 0, c = 0;
+          int[] dp = new int[n];
+          dp[0] = 1;
+          for(int i = 1; i < n; i++) {
+              int n2 = dp[a] * 2, n3 = dp[b] * 3, n5 = dp[c] * 5;
+              dp[i] = Math.min(Math.min(n2, n3), n5);
+              if(dp[i] == n2) a++;
+              if(dp[i] == n3) b++;
+              if(dp[i] == n5) c++;
+          }
+          return dp[n - 1];
+      }
+  ```
+
+  
+
+- [前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)（亚马逊在半年内面试中常考）
+
+  ```java
+  public int[] topKFrequent(int[] nums, int k) {
+           // 统计每个数字出现的次数
+          Map<Integer, Integer> counterMap = IntStream.of(nums).boxed().collect(Collectors.toMap(e -> 
+          e, 
+          e -> 1, Integer::sum)
+          );
+          // 一个数字最多出现 nums.length 次，因此定义一个长度为 nums.length + 1 的数组，      freqList[i] 中存储出现次数为 i 的所有数字。
+          List<Integer>[] freqList = new List[nums.length + 1];
+          for (int i = 0; i < freqList.length; i++) {
+              freqList[i] = new ArrayList<>();
+          }
+          counterMap.forEach((num, freq) -> {
+              freqList[freq].add(num);
+          });
+          // 按照出现频次，从大到小遍历频次数组，构造返回结果。
+          int[] res = new int[k];
+          int idx = 0;
+          for (int freq = freqList.length - 1; freq > 0; freq--) {
+              for (int num: freqList[freq]) {
+                  res[idx++] = num;
+                  if (idx == k) {
+                      return res;
+                  }
+              }
+          }
+          return res;
+      }
+  
+  ```
+
+  
+

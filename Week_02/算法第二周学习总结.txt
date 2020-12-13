@@ -1,0 +1,112 @@
+- 哈希表
+
+  哈希函数处理后值相同 ->哈希碰撞
+
+  线性链表解决法，java hash map 在超过8个冲突后会转换成红黑树
+
+  当小于6个的时候，会销毁红黑树
+
+  Map key-value 对，key不重复 ，源码看put、get 方法
+
+  Set 不重复元素集合   HashSet 底层是HashMap 存储的key是value,value是一个固定值  TreeSet（二叉搜索树，红黑树）
+
+  ![](C:\Users\Administrator\Desktop\微信截图_20201213005223.png)
+
+- 映射
+
+- 集合
+
+- 树
+
+  升维 ，树和图最大的区别就是看有没有环，链表就是特殊化的树，树就是特殊化的图
+
+- 二叉树  
+
+- 二叉搜索树  log n时间复杂度这个是怎么估算的呢，有没有什么比较简单的计算方法，不会估算log n的时间复杂度。
+
+  插入：在查找的过程中没有查找到的话，就是这个节点需要在的位置，直接插入即可
+
+  创建：
+
+  删除：1.叶子节点直接删除即可 2.关键根节点或子树根节点，找与要删除节点最接近的节点，或者第一个大于它的节点，替换到删除的位置即可。
+
+  树的面试题为什么都是递归的？
+
+  https://visualgo.net/en 算法demo可视化网址
+
+- 堆
+
+  可以找到一堆数中最大值或者最小值，常见二叉堆、斐波那契堆
+
+  通过完全二叉树来实现
+
+- 二叉堆
+
+  二叉堆（大顶）它满足下列性质：是一颗完全树，树中任意节点的值总是大于等于其子节点。
+
+  二叉堆一般通过“数组”来实现，假设“第一个元素”在数组中的索引为0的话，则父节点和子节点的位置关系如下：
+
+  （01）索引为i的左孩子的索引是（2*i+1）
+
+    (02)   索引为i的右孩子的索引是（2*i+2）
+
+    (03)  索引为i的父节点的索引是floor()(i-1)/2)
+
+  insert插入操作：
+
+   1.新元素一律先插入到堆的尾部
+
+   2.依次向上调整整个堆的结构（一直到根即可），依次跟父节点比较，大于父亲节点则交换，不大于则完成调整。（深度是最大的时间复杂度）
+
+  delete 删除堆顶操作：
+
+  1.将堆尾元素替换到顶部（即对顶被替代删除掉）
+
+  2.依次从根部向下调整整个堆的结构（一直到堆尾即可），看替换后的数依次比较左右儿子谁最大就跟谁替换位置
+
+  二叉堆是一种堆的常见简单实现，但并不是最优的实现，在java中可使用 priorityqueue
+
+- 图
+
+- 实战题目：
+
+  - [有效的字母异位词](https://leetcode-cn.com/problems/valid-anagram/description/)（亚马逊、Facebook、谷歌在半年内面试中考过）
+
+    四件套：1.与面试官确认题意 2.各种可能 3.写代码 4.测试
+
+    1.暴力，sort 每个字符串是否相等
+
+    2.hash map 统计每个字符出现的次数
+
+    
+
+  - [字母异位词分组](https://leetcode-cn.com/problems/group-anagrams/)（亚马逊在半年内面试中常考）
+
+    
+
+  - [两数之和](https://leetcode-cn.com/problems/two-sum/description/)（亚马逊、字节跳动、谷歌、Facebook、苹果、微软、腾讯在半年内面试中常考）
+
+  - [二叉树的中序遍历](https://leetcode-cn.com/problems/binary-tree-inorder-traversal/)（亚马逊、微软、字节跳动在半年内面试中考过）
+
+  - [二叉树的前序遍历](https://leetcode-cn.com/problems/binary-tree-preorder-traversal/)（谷歌、微软、字节跳动在半年内面试中考过）
+
+  - [N 叉树的后序遍历](https://leetcode-cn.com/problems/n-ary-tree-postorder-traversal/)（亚马逊在半年内面试中考过）
+
+  - [N 叉树的前序遍历](https://leetcode-cn.com/problems/n-ary-tree-preorder-traversal/description/)（亚马逊在半年内面试中考过）
+
+  - [N 叉树的层序遍历](https://leetcode-cn.com/problems/n-ary-tree-level-order-traversal/)
+
+  - 连通图个数：[ https://leetcode-cn.com/problems/number-of-islands/](https://leetcode-cn.com/problems/number-of-islands/)
+
+  - 拓扑排序（Topological Sorting）：[ https://zhuanlan.zhihu.com/p/34871092](https://zhuanlan.zhihu.com/p/34871092)
+
+  - 最短路径（Shortest Path）：Dijkstra https://www.bilibili.com/video/av25829980?from=search&seid=13391343514095937158
+
+  - 最小生成树（Minimum Spanning Tree）：[ https://www.bilibili.com/video/av84820276?from=search&seid=17476598104352152051](https://www.bilibili.com/video/av84820276?from=search&seid=17476598104352152051)（花花酱）
+
+    
+
+  ​     莫里斯遍历
+
+
+
