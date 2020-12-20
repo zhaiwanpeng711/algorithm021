@@ -1,0 +1,511 @@
+要爱上看优秀的代码 吸收经验
+
+思维要点：
+
+1.不要人肉递归
+
+2.找到最近重复子问题
+
+3.数学归纳法思维（最简单的条件成立，能推到出当n的时候，n+1是可以成立的）
+
+递归模板
+
+1.递归终结条件
+
+2.处理当前层逻辑
+
+3.下探到下一层
+
+4.清扫当前层（有些时候不需要清理，本身变量是copy的，如果是全局变量的话需要清除）
+
+爬楼梯
+
+生成括号  左括号随时可以加，别超标，加右括号前必须有左括号，左括号>右括号
+
+提前去掉一些肯定不合法的情形--减枝
+
+
+
+递归就是进行一个重复的循环while语句，而分治则是把这个问题分解成无数个重复移动的动作的思维方法。
+
+其实对于这个问题，界限也并非如此清晰，你可以想象，如果我让一万个1相加
+
+采用循环，直接循环加一万次
+
+采用递归，递归循环一万次
+
+采用分治，不停的划分（这里划分既可以使用递归也可以使用循环），两两相加。
+
+
+
+找重复性以及分解问题以及最后组合每个问题的结果
+
+回溯：
+
+ 回溯算法的基本思想是：从一条路往前走，能进则进，不能进则退回来，换一条路再试。[八皇后问题](https://baike.baidu.com/item/八皇后问题)就是回溯算法的典型，第一步按照顺序放一个皇后，然后第二步符合要求放第2个皇后，如果没有位置符合要求，那么就要改变第一个皇后的位置，重新放第2个皇后的位置，直到找到符合条件的位置就可以了。回溯在迷宫搜索中使用很常见，就是这条路走不通，然后返回前一个路口，继续下一条路。回溯算法说白了就是穷举法。不过回溯算法使用剪枝函数，剪去一些不可能到达 最终状态（即答案状态）的[节点](https://baike.baidu.com/item/节点)，从而减少状态空间树节点的生成。
+
+分治模板：
+
+1.terminator  2.process(split your big problem)  3.drill down  subproblems,merge(subsult) 4.reverse states
+
+求子问题pow(x,n)
+
+```java
+ pow(x,n)  ->subproblem: subresult=pow(x,n/2)
+       merge:
+               if n %  2 == 1 {
+                  result  =  subresult   *   subresult   * x;
+                }   else{
+                  result =subresult* subresult;
+                 } 
+```
+
+​      
+
+## 实战题目
+
+- [爬楼梯](https://leetcode-cn.com/problems/climbing-stairs/)（阿里巴巴、腾讯、字节跳动在半年内面试常考）
+
+- [括号生成](https://leetcode-cn.com/problems/generate-parentheses/) (字节跳动在半年内面试中考过)
+
+  ```java
+  
+  class Solution {
+      public List<String> generateParenthesis(int n) {
+          //结果值
+          List<String> ans = new ArrayList<String>();
+          //第二个是当前结果的形态，open 左括号 close 右括号 max 输入的n
+          backtrack(ans, new StringBuilder(), 0, 0, n);
+          return ans;
+      }
+  
+      public void backtrack(List<String> ans, StringBuilder cur, int open, int close, int max) {
+          //终止条件 当字符串的长度等于 2n 证明已达到合法字符串长度限制，输出结果，没达到就还可以拼接
+          if (cur.length() == max * 2) {
+              ans.add(cur.toString());
+              return;
+          }
+          //合法性校验 左括号
+          if (open < max) {
+              cur.append('(');
+              //下探下一层
+              backtrack(ans, cur, open + 1, close, max);
+              //清扫当前层 不清扫cur的长度会影响到下一层的下探，长度会提早达到结束
+              cur.deleteCharAt(cur.length() - 1);
+          }
+          //合法性校验 右括号必须小于左括号
+          //之前加了个=号忘记了 都相等了 右括号在加肯定就不对了
+          if (close < open) {
+              cur.append(')');
+              backtrack(ans, cur, open, close + 1, max);
+              cur.deleteCharAt(cur.length() - 1);
+          }
+      }
+  
+  }
+  ```
+
+- [翻转二叉树](https://leetcode-cn.com/problems/invert-binary-tree/description/) (谷歌、字节跳动、Facebook 在半年内面试中考过)
+
+  ```java
+  class Solution {
+  	public TreeNode invertTree(TreeNode root) {
+  		//递归函数的终止条件，节点为空时返回
+  		if(root==null) {
+  			return null;
+  		}
+  		//下面三句是将当前节点的左右子树交换
+  		TreeNode tmp = root.right;
+  		root.right = root.left;
+  		root.left = tmp;
+  		//递归交换当前节点的 左子树
+  		invertTree(root.left);
+  		//递归交换当前节点的 右子树
+  		invertTree(root.right);
+  		//函数返回时就表示当前这个节点，以及它的左右子树
+  		//都已经交换完了
+  		return root;
+  	}
+  }
+  ```
+
+- [验证二叉搜索树](https://leetcode-cn.com/problems/validate-binary-search-tree)（亚马逊、微软、Facebook 在半年内面试中考过）
+
+  ```java
+  //左子树节点都小于根节点  右子树节点都大于根节点
+  class Solution {
+     public boolean isValidBST(TreeNode root) {
+      return isValidBST(root, Long.MIN_VALUE, Long.MAX_VALUE);
+     }
+  
+   public boolean isValidBST(TreeNode root, long minVal, long maxVal) {
+       //1.递归终结条件 
+       if (root == null)
+          return true;
+      //每个节点如果超过这个范围，直接返回false
+      if (root.val >= maxVal || root.val <= minVal)
+          return false;
+      //  处理当前层逻辑
+      //这里再分别以左右两个子节点分别判断，
+      //左子树范围的最小值是minVal，最大值是当前节点的值，也就是root的值，因为左子树的值要比当前节点小
+      //右子数范围的最大值是maxVal，最小值是当前节点的值，也就是root的值，因为右子树的值要比当前节点大
+      return isValidBST(root.left, minVal, root.val) && isValidBST(root.right, root.val, maxVal);
+     }
+  
+  }
+  ```
+
+  
+
+- [二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree)（亚马逊、微软、字节跳动在半年内面试中考过）
+
+  ```java
+  class Solution {
+    public int maxDepth(TreeNode root) {
+          if(root == null) {
+              return 0;
+          } else {
+              int left = maxDepth(root.left);
+              int right = maxDepth(root.right);
+              return Math.max(left, right) + 1;
+          }
+      }
+  }
+      
+  ```
+
+  
+
+- [二叉树的最小深度](https://leetcode-cn.com/problems/minimum-depth-of-binary-tree)（Facebook、字节跳动、谷歌在半年内面试中考过）
+
+  ```java
+  class Solution {
+       public int minDepth(TreeNode root) {
+          if (root == null) {
+              return 0;
+          }
+  
+          int ans = Integer.MAX_VALUE;
+          if (root.left == null && root.right == null) {
+              return 1;
+          }
+          if (root.left != null) {
+              ans = Math.min(minDepth(root.left), ans);
+          }
+          if (root.right != null) {
+              ans = Math.min(minDepth(root.right), ans);
+          } 
+          
+          return ans + 1;      
+      }
+  }
+  ```
+
+  
+
+- [二叉树的序列化与反序列化](https://leetcode-cn.com/problems/serialize-and-deserialize-binary-tree/)（Facebook、亚马逊在半年内面试常考）
+
+  ```java
+  public class Codec {
+  
+      //把树转化为字符串（使用DFS遍历，也是前序遍历，顺序是：根节点→左子树→右子树）
+      public String serialize(TreeNode root) {
+          //边界判断，如果为空就返回一个字符串"#"
+          if (root == null)
+              return "#";
+          return root.val + "," + serialize(root.left) + "," + serialize(root.right);
+      }
+  
+      //把字符串还原为二叉树
+      public TreeNode deserialize(String data) {
+          //把字符串data以逗号","拆分，拆分之后存储到队列中
+          Queue<String> queue = new LinkedList<>(Arrays.asList(data.split(",")));
+          return helper(queue);
+      }
+  
+      private TreeNode helper(Queue<String> queue) {
+          //出队
+          String sVal = queue.poll();
+          //如果是"#"表示空节点
+          if ("#".equals(sVal))
+              return null;
+          //否则创建当前节点
+          TreeNode root = new TreeNode(Integer.valueOf(sVal));
+          //分别创建左子树和右子树
+          root.left = helper(queue);
+          root.right = helper(queue);
+          return root;
+      }
+  }
+  ```
+
+  
+
+- [Pow(x, n) ](https://leetcode-cn.com/problems/powx-n/)（Facebook 在半年内面试常考）
+
+  ```java
+  
+  class Solution {
+        public double myPow(double x, int n) {
+          if(x == 0.0f) return 0.0d;
+          long b = n;
+          double res = 1.0;
+          if(b < 0) {
+              x = 1 / x;
+              b = -b;
+          }
+          while(b > 0) {
+              if((b & 1) == 1) res *= x;
+              x *= x;
+              b >>= 1;
+          }
+          return res;
+      }
+  }
+  ```
+
+  
+
+- [子集](https://leetcode-cn.com/problems/subsets/)（Facebook、字节跳动、亚马逊在半年内面试中考过）
+
+  ```java
+  class Solution {
+      public List<List<Integer>> subsets(int[] nums) {
+         List<List<Integer>> res = new ArrayList<List<Integer>>();  
+          for (int i = 0; i < (1 << nums.length); i++) {
+              List<Integer> sub = new ArrayList<Integer>();
+              for (int j = 0; j < nums.length; j++)
+                  if (((i >> j) & 1) == 1) sub.add(nums[j]);
+              res.add(sub);
+          }
+          return res;
+      }
+  }
+  ```
+
+  
+
+- [多数元素](https://leetcode-cn.com/problems/majority-element/description/) （亚马逊、字节跳动、Facebook 在半年内面试中考过）
+
+  ```java
+  class Solution {
+        public int majorityElement(int[] nums) {
+          int cand_num = nums[0], count = 1;
+          for (int i = 1; i < nums.length; ++i) {
+              if (cand_num == nums[i])
+                  ++count;
+              else if (--count == 0) {
+                  cand_num = nums[i];
+                  count = 1;
+              }
+          }
+          return cand_num;
+      }
+  }
+  ```
+
+- [电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)（亚马逊在半年内面试常考）
+
+  ```java
+  //套模板 找最近重复子问题   1数字有3个英文字符 (1:n) 随着输入的数字增多 返回的结果的长度也会变大，组合类型也会增多 但是都维持一个逻辑(n:n:n:n.......) n等于题目里数据对应的字母个数 这个深度是根据输入的数字长度决定的，可以转换成找每个 n:n 有多少种,然后一层一层往下
+  //1.terminator  递归终结条件  就是当组合找到的字符串的长度等于输入的长度 则证明是一个结果 ，所有的结果都找一遍就完事了
+  //2.process(split your big problem)  处理当前层逻辑  根据输入获取key-value 然后迭代value的值
+  //3.drill down  subproblems,merge(subsult)   下探到下一层  层数加一 并把当前层的值传下去作为前缀
+  //4.reverse states 清扫当前层（有些时候不需要清理，如果是全局变量需要清除）
+  class Solution {
+        public List<String> letterCombinations(String digits) {
+          List<String> combinations = new ArrayList<String>();
+          if (digits.length() == 0) {
+              return combinations;
+          }
+          Map<Character, String> phoneMap = new HashMap<Character, String>() {{
+              put('2', "abc");
+              put('3', "def");
+              put('4', "ghi");
+              put('5', "jkl");
+              put('6', "mno");
+              put('7', "pqrs");
+              put('8', "tuv");
+              put('9', "wxyz");
+          }};
+          backtrack(combinations, phoneMap, digits, 0, new StringBuffer());
+          return combinations;
+      }
+  
+      public void backtrack(List<String> combinations, Map<Character, String> phoneMap, String digits, int index, StringBuffer combination) {
+          //递归终结条件  当组合找到的字符串的长度等于输入的长度 则证明是一个结果，所有的结果都找一遍就完事了
+          if (index == digits.length()) {
+              combinations.add(combination.toString());
+          } else {
+              //不满足则需要继续递归
+              //获取输入的待解析的原始数据，index是层数从第0层开始
+              char digit = digits.charAt(index);
+              //获取原始数据对应的英文字符
+              String letters = phoneMap.get(digit);
+              //字符的长度 n
+              int lettersCount = letters.length();
+              //每个字符需要执行一次拼接逻辑
+              for (int i = 0; i < lettersCount; i++) {
+                  //直接拼接
+                  combination.append(letters.charAt(i));
+                  //进入下一层 index+1 直到等于digits.length() 证明层数到头了
+                  backtrack(combinations, phoneMap, digits, index + 1, combination);
+                  //因为结果长度是与index的长度相等的,所以，如果不清除当前层的状态值，后面生成的字符串会                 基于index 一直往后增加index+lettersCount 位远远大于要找到的正确值长度，所以要每完成一个字符的             处理，要把它清除掉
+                  combination.deleteCharAt(index);
+              }
+          }
+      }
+  
+  }
+  ```
+
+  
+
+- [N 皇后](https://leetcode-cn.com/problems/n-queens/)（字节跳动、苹果、谷歌在半年内面试中考过）
+
+  ```java
+  class Solution {
+      public List<List<String>> solveNQueens(int n) {
+          //初始化棋盘
+          char[][] chess = new char[n][n];
+          for (int i = 0; i < n; i++)
+              for (int j = 0; j < n; j++)
+                  chess[i][j] = '.';
+          //结果
+          List<List<String>> res = new ArrayList<>();
+          //核心逻辑
+          solve(res, chess, 0);
+          return res;
+      }
+      
+      //回溯
+      private void solve(List<List<String>> res, char[][] chess, int row) {
+          //递归终结条件  当最后一个皇后被找到
+          if (row == chess.length) {
+              res.add(construct(chess));
+              return;
+          }
+          //处理当前层逻辑
+          //按列尝试放置皇后
+          for (int col = 0; col < chess.length; col++) {
+              //验证是否合法 不合法则直接皇后往前走
+              if (valid(chess, row, col)) {
+                  chess[row][col] = 'Q';
+                  //下探到下一层
+                  solve(res, chess, row + 1);
+                  chess[row][col] = '.';
+              }
+          }
+      }
+  
+      //row表示第几行，col表示第几列
+      private boolean valid(char[][] chess, int row, int col) {
+          //判断当前列有没有皇后,因为他是一行一行往下走的，
+          //我们只需要检查走过的行数即可，通俗一点就是判断当前
+        //坐标位置的上面有没有皇后
+          for (int i = 0; i < row; i++) {
+              if (chess[i][col] == 'Q') {
+                  return false;
+              }
+          }
+          //判断当前坐标的右上角有没有皇后
+          for (int i = row - 1, j = col + 1; i >= 0 && j < chess.length; i--, j++) {
+              if (chess[i][j] == 'Q') {
+                  return false;
+              }
+          }
+          //判断当前坐标的左上角有没有皇后
+          for (int i = row - 1, j = col - 1; i >= 0 && j >= 0; i--, j--) {
+              if (chess[i][j] == 'Q') {
+                  return false;
+              }
+          }
+          return true;
+      }
+  
+      //把数组转为list
+      private List<String> construct(char[][] chess) {
+          List<String> path = new ArrayList<>();
+          for (int i = 0; i < chess.length; i++) {
+              path.add(new String(chess[i]));
+          }
+          return path;
+      }
+  }
+  ```
+  
+  
+
+## 课后作业
+
+- [二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)（Facebook 在半年内面试常考）
+- [从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal)（字节跳动、亚马逊、微软在半年内面试中考过）
+- [组合](https://leetcode-cn.com/problems/combinations/)（微软、亚马逊、谷歌在半年内面试中考过）
+- [全排列](https://leetcode-cn.com/problems/permutations/)（字节跳动在半年内面试常考）
+- [全排列 II ](https://leetcode-cn.com/problems/permutations-ii/)（亚马逊、字节跳动、Facebook 在半年内面试中考过）
+
+
+
+## 参考链接
+
+- [递归代码模板](https://shimo.im/docs/EICAr9lRPUIPHxsH/)
+
+  ```java
+  // Java
+  public void recur(int level, int param) { 
+    // terminator 
+    if (level > MAX_LEVEL) { 
+      // process result 
+      return; 
+    }
+    // process current logic 
+    process(level, param); 
+    // drill down 
+    recur( level: level + 1, newParam); 
+    // restore current status 
+  
+  }
+  ```
+
+  
+
+- [分治代码模板](https://shimo.im/docs/zvlDqLLMFvcAF79A/)
+
+  ```java
+  private static int divide_conquer(Problem problem, ) {
+    
+    if (problem == NULL) {
+      int res = process_last_result();
+      return res;     
+    }
+    subProblems = split_problem(problem)
+    
+    res0 = divide_conquer(subProblems[0])
+    res1 = divide_conquer(subProblems[1])
+    
+    result = process_result(res0, res1);
+    
+    return result;
+  }
+  ```
+
+- [括号生成问题](https://leetcode-cn.com/problems/generate-parentheses/)
+
+- [牛顿迭代法原理](http://www.matrix67.com/blog/archives/361)
+
+- [牛顿迭代法代码](http://www.voidcn.com/article/p-eudisdmk-zm.html)
+
+  ```java
+  int mysqrt(int x){
+  	double tmpx = x;
+  	double k = 1.0;
+  	double k0 = 0.0;
+  	while(abs(k0-k) >= 1){
+  		k0 = k;
+  		k = (k + tmpx/k)/2;
+  	}
+  	return (int)k;
+  }
+  ```
+
+  

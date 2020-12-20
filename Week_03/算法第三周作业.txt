@@ -1,0 +1,171 @@
+## 本周作业
+
+### 中等：
+
+- [二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)（Facebook 在半年内面试常考）
+
+  ```java
+      
+  class Solution {    
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) { 
+      //递归终结条件  
+      if(root==null || root==p || root==q)
+          return root;
+      //处理当前层逻辑
+      //下探到下一层
+      TreeNode leftNode=lowestCommonAncestor(root.left,p,q);
+      TreeNode rightNode=lowestCommonAncestor(root.right,p,q);
+      
+      //递归终结条件 
+      if(leftNode==null)
+          return rightNode;
+      if(rightNode==null)
+          return leftNode;
+  
+      return root;
+    }
+  }    
+  ```
+
+  
+
+- [从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)（字节跳动、亚马逊、微软在半年内面试中考过）
+
+  ```java
+  class Solution {
+     public TreeNode buildTree(int[] preorder, int[] inorder) {
+      return buildTreeHelper(preorder,  inorder, (long)Integer.MAX_VALUE + 1);
+     }
+     int pre = 0;
+     int in = 0;
+     private TreeNode buildTreeHelper(int[] preorder, int[] inorder, long stop) {
+      //到达末尾返回 null
+      if(pre == preorder.length){
+          return null;
+      }
+      //到达停止点返回 null
+      //当前停止点已经用了，in 后移
+      if (inorder[in] == stop) {
+          in++;
+          return null;
+      }
+      int root_val = preorder[pre++];
+      TreeNode root = new TreeNode(root_val);   
+      //左子树的停止点是当前的根节点
+      root.left = buildTreeHelper(preorder,  inorder, root_val);
+      //右子树的停止点是当前树的停止点
+      root.right = buildTreeHelper(preorder, inorder, stop);
+      return root;
+    }
+  
+  }
+  ```
+
+  
+
+- [组合](https://leetcode-cn.com/problems/combinations/)（微软、亚马逊、谷歌在半年内面试中考过）
+
+  ```java
+  class Solution {
+      public List<List<Integer>> combine(int n, int k) {
+          List<List<Integer>> list = new ArrayList<>();
+          backtrack(list, n, k, 1, new ArrayList<>());
+          return list;
+      }
+  
+      private void backtrack(List<List<Integer>> list, int n, int k, int start, List<Integer> tempList) {
+          //终止条件，找到一对组合
+          if (k == 0) {
+              list.add(new ArrayList<>(tempList));
+              return;
+          }
+          if (start <= n - k) {
+              //不选当前值，k不变
+              //下探到下一层
+              backtrack(list, n, k, start + 1, tempList);
+          }
+          //选择当前值，k要减1
+          tempList.add(start);
+          //下探到下一层
+          backtrack(list, n, k - 1, start + 1, tempList);
+          //因为是递归调用，跳到下一个分支的时候，要把这个分支选的值给移除
+          tempList.remove(tempList.size() - 1);
+      }
+  }
+  ```
+
+  
+
+- [全排列](https://leetcode-cn.com/problems/permutations/)（字节跳动在半年内面试常考）
+
+  ```java
+  class Solution {
+        public List<List<Integer>> permute(int[] nums) {
+  
+          List<List<Integer>> res = new ArrayList<>();
+          int[] visited = new int[nums.length];
+          backtrack(res, nums, new ArrayList<Integer>(), visited);
+          return res;
+  
+      }
+  
+      private void backtrack(List<List<Integer>> res, int[] nums, ArrayList<Integer> tmp, int[] visited) {
+          if (tmp.size() == nums.length) {
+              res.add(new ArrayList<>(tmp));
+              return;
+          }
+          for (int i = 0; i < nums.length; i++) {
+              if (visited[i] == 1) continue;
+              visited[i] = 1;
+              tmp.add(nums[i]);
+              backtrack(res, nums, tmp, visited);
+              visited[i] = 0;
+              tmp.remove(tmp.size() - 1);
+          }
+      }
+  
+  
+  }
+  ```
+
+  
+
+- [全排列 II ](https://leetcode-cn.com/problems/permutations-ii/)（亚马逊、字节跳动、Facebook 在半年内面试中考过）
+
+  ```java
+  class Solution {
+      public List<List<Integer>> result = new LinkedList<>();
+      public List<List<Integer>> permuteUnique(int[] nums) {
+          if(nums.length == 0){
+              return result;
+          }
+          //首先给数组排序
+          Arrays.sort(nums);
+          backtrack(nums,new boolean[nums.length],new LinkedList<Integer>());
+          return result;
+      }
+      public void backtrack(int[] nums, boolean[] visited,LinkedList<Integer> trace){
+          //结束条件
+          if(trace.size() == nums.length){
+              result.add(new LinkedList(trace));
+              return ;
+          }
+          //选择列表
+          for(int i = 0; i<nums.length; i++){
+              //其次，我们已经选择过的不需要再放进去了
+              if(visited[i]) continue;
+              //接下来，如果当前节点与他的前一个节点一样，并其他的前一个节点已经被遍历过了，那我们也就不需要了。
+              if(i>0 && nums[i] == nums[i-1] && visited[i-1]) break;
+              //做出选择
+              trace.add(nums[i]);
+              visited[i] = true;
+              backtrack(nums,visited,trace);
+              //撤销选择
+              trace.removeLast();
+              visited[i] = false;
+        }
+      }
+  }
+  ```
+  
+  
